@@ -3,17 +3,36 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ChessPlayer : MonoBehaviour
+public class ChessPlayer 
 {
-    private object white;
-    private Board board;
-    internal TeamColor team;
-    internal object activePieces;
 
-    public ChessPlayer(object white, Board board)
+    public TeamColor team { get; set; }
+    public Board board { get; set; }
+    public List<Piece> activePieces { get; private set; }
+
+    public ChessPlayer(TeamColor team, Board board)
     {
-        this.white = white;
+        activePieces = new List<Piece>();
         this.board = board;
+        this.team = team;
+    }
+    public void AddPiece(Piece piece)
+    {
+        if (!activePieces.Contains(piece))
+            activePieces.Add(piece);
+    }
+    public void RemovePiece(Piece piece)
+    {
+        if (activePieces.Contains(piece))
+            activePieces.Remove(piece);
+    }
+    public void GenerateAllPossibleMoves()
+    {
+        foreach (var piece in activePieces)
+        {
+            if (board.HasPiece(piece))
+                piece.SelectAvaliableSquares();
+        }
     }
 
     // Start is called before the first frame update
@@ -28,43 +47,5 @@ public class ChessPlayer : MonoBehaviour
         
     }
 
-    internal void AddPiece(Piece newPiece)
-    {
-        throw new NotImplementedException();
-    }
-
-    internal void GenerateAllPossibleMoves()
-    {
-        throw new NotImplementedException();
-    }
-
-    internal Piece[] GetPieceAtackingOppositePiceOfType<T>()
-    {
-        throw new NotImplementedException();
-    }
-
-    internal object GetPiecesOfType<T>()
-    {
-        throw new NotImplementedException();
-    }
-
-    internal void RemoveMovesEnablingAttakOnPieceOfType<T>(ChessPlayer activePlayer, Piece attackedKing)
-    {
-        throw new NotImplementedException();
-    }
-
-    internal bool CanHidePieceFromAttack<T>(ChessPlayer activePlayer)
-    {
-        throw new NotImplementedException();
-    }
-
-    internal void OnGameRestarted()
-    {
-        throw new NotImplementedException();
-    }
-
-    internal void RemovePiece(Piece piece)
-    {
-        throw new NotImplementedException();
-    }
+    
 }

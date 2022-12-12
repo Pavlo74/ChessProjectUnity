@@ -17,9 +17,9 @@ public class ChessGameController : MonoBehaviour
     //private CameraSetup cameraSetup;
     //private Board board;
     private PieceCreator pieceCreator;
-    //protected ChessPlayer whitePlayer;
-    //protected ChessPlayer blackPlayer;
-    //protected ChessPlayer activePlayer;
+    protected ChessPlayer whitePlayer;
+    protected ChessPlayer blackPlayer;
+    protected ChessPlayer activePlayer;
 
 
     //protected GameState state;
@@ -27,7 +27,16 @@ public class ChessGameController : MonoBehaviour
     private void Awake()
     {
         pieceCreator = GetComponent<PieceCreator>();
+        CreatePlayers();
     }
+
+    private void CreatePlayers()
+    {
+        whitePlayer = new ChessPlayer(TeamColor.White, board);
+        blackPlayer = new ChessPlayer(TeamColor.Black, board);
+    }
+
+    
 
     //internal void SetDependencies(CameraSetup cameraSetup, ChessUIManager UIManager, Board board)
     //{
@@ -56,16 +65,37 @@ public class ChessGameController : MonoBehaviour
     {
         //UIManager.OnGameStarted();
         //SetGameState(GameState.Init);
+        board.SetDependencies(this);
         CreatePiecesFromLayout(startingBoardLayout);
-        //activePlayer = whitePlayer;
-        //GenerateAllPossiblePlayerMoves(activePlayer);
+        activePlayer = whitePlayer;
+        GenerateAllPossiblePlayerMoves(activePlayer);
         //TryToStartThisGame();
 
     }
 
-    private void GenerateAllPossiblePlayerMoves(ChessPlayer activePlayer)
+    
+
+    private void GenerateAllPossiblePlayerMoves(ChessPlayer player)
     {
-        throw new NotImplementedException();
+        player.GenerateAllPossibleMoves();
+    }
+
+    public void EndTurn()
+    {
+        GenerateAllPossiblePlayerMoves(activePlayer);
+        GenerateAllPossiblePlayerMoves(GetOpponentToPlayer(activePlayer));
+        ChangeActiveTeam();
+        
+    }
+
+    private void ChangeActiveTeam()
+    {
+        activePlayer = activePlayer == whitePlayer ? blackPlayer : whitePlayer;
+    }
+
+    private ChessPlayer GetOpponentToPlayer(ChessPlayer player)
+    {
+       return player == whitePlayer ? blackPlayer : whitePlayer ;
     }
 
     private void SetGameState(object init)
@@ -94,6 +124,8 @@ public class ChessGameController : MonoBehaviour
 
             Type type = Type.GetType(typeName);
             CreatePieceAndInitialize(squareCoords, team, type);
+
+
         }
     }
 
@@ -104,5 +136,13 @@ public class ChessGameController : MonoBehaviour
 
         Material teamMaterial = pieceCreator.GetTeamMaterial(team);
         newPiece.SetMaterial(teamMaterial);
+
+        board.SetPieceOnBoard(squareCoords, newPiece);
+        ChessPlayer currentPlayer = team == TeamColor.White ? whitePlayer : blackPlayer;
+        currentPlayer.AddPiece(newPiece);
+    }
+    public bool IsTeamTurnActive(TeamColor team)
+    {
+        return activePlayer.team == team;
     }
 }
