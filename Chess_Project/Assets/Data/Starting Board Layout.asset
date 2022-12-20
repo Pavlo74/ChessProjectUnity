@@ -26,11 +26,11 @@ MonoBehaviour:
     pieceType: 4
     teamColor: 1
   - position: {x: 5, y: 1}
-    pieceType: 2
+    pieceType: 5
     teamColor: 1
   - position: {x: 6, y: 1}
     pieceType: 1
-    teamColor: 0
+    teamColor: 1
   - position: {x: 7, y: 1}
     pieceType: 2
     teamColor: 1

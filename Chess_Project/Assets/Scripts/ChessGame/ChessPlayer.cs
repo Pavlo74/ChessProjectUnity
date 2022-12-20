@@ -1,19 +1,39 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
-public class ChessPlayer : MonoBehaviour
+public class ChessPlayer 
 {
-    private object white;
-    private Board board;
-    internal TeamColor team;
-    internal object activePieces;
 
-    public ChessPlayer(object white, Board board)
+    public TeamColor team { get; set; }
+    public Board board { get; set; }
+    public List<Piece> activePieces { get; private set; }
+
+    public ChessPlayer(TeamColor team, Board board)
     {
-        this.white = white;
+        activePieces = new List<Piece>();
         this.board = board;
+        this.team = team;
+    }
+    public void AddPiece(Piece piece)
+    {
+        if (!activePieces.Contains(piece))
+            activePieces.Add(piece);
+    }
+    public void RemovePiece(Piece piece)
+    {
+        if (activePieces.Contains(piece))
+            activePieces.Remove(piece);
+    }
+    public void GenerateAllPossibleMoves()
+    {
+        foreach (var piece in activePieces)
+        {
+            if (board.HasPiece(piece))
+                piece.SelectAvaliableSquares();
+        }
     }
 
     // Start is called before the first frame update
@@ -28,43 +48,66 @@ public class ChessPlayer : MonoBehaviour
         
     }
 
-    internal void AddPiece(Piece newPiece)
+    public Piece[] GetPieceAtackingOppositePiceOfType<T>() where T : Piece
     {
-        throw new NotImplementedException();
+        return activePieces.Where(p => p.IsAttackingPieceOfType<T>()).ToArray();
     }
 
-    internal void GenerateAllPossibleMoves()
+   public Piece[] GetPiecesOfType<T>() where T : Piece
     {
-        throw new NotImplementedException();
+        return activePieces.Where(p => p is T).ToArray();
     }
 
-    internal Piece[] GetPieceAtackingOppositePiceOfType<T>()
+    public void RemoveMovesEnablingAttakOnPieceOfType<T>(ChessPlayer opponent, Piece selectedPiece) where T : Piece
     {
-        throw new NotImplementedException();
-    }
-
-    internal object GetPiecesOfType<T>()
-    {
-        throw new NotImplementedException();
-    }
-
-    internal void RemoveMovesEnablingAttakOnPieceOfType<T>(ChessPlayer activePlayer, Piece attackedKing)
-    {
-        throw new NotImplementedException();
-    }
-
-    internal bool CanHidePieceFromAttack<T>(ChessPlayer activePlayer)
-    {
-        throw new NotImplementedException();
+        List<Vector2Int> coordsToRemove = new List<Vector2Int>();
+        foreach(var coords in selectedPiece.avaliableMoves)
+        {
+            Piece pieceOnCoords = board.GetPieceOnSquare(coords);
+            board.UpdateBoardOnPieceMove(coords, selectedPiece.occupiedSquare, selectedPiece, null);
+            opponent.GenerateAllPossibleMoves();
+            if (opponent.CheckIfIsAttacigPiece<T>())
+                coordsToRemove.Add(coords);
+            board.UpdateBoardOnPieceMove(selectedPiece.occupiedSquare, coords, selectedPiece, pieceOnCoords);
+        }
+        foreach (var coords in coordsToRemove)
+        {
+            selectedPiece.avaliableMoves.Remove(coords);
+        }
     }
 
     internal void OnGameRestarted()
     {
-        throw new NotImplementedException();
+        activePieces.Clear();
     }
 
-    internal void RemovePiece(Piece piece)
+    private bool CheckIfIsAttacigPiece<T>() where T: Piece
     {
-        throw new NotImplementedException();
+        foreach (var piece in activePieces)
+        {
+            if (board.HasPiece(piece) && piece.IsAttackingPieceOfType<T>())
+                return true;
+        }
+        return false;
+    }
+
+    public bool CanHidePieceFromAttack<T>(ChessPlayer opponent) where T: Piece
+    {
+        foreach (var piece in activePieces) 
+        {
+            foreach (var coords in piece.avaliableMoves)
+            {
+                Piece pieceOnCoords = board.GetPieceOnSquare(coords);
+                board.UpdateBoardOnPieceMove(coords, piece.occupiedSquare, piece, null);
+                opponent.GenerateAllPossibleMoves();
+                if (!opponent.CheckIfIsAttacigPiece<T>())
+                {
+                    board.UpdateBoardOnPieceMove(piece.occupiedSquare, coords, piece, pieceOnCoords);
+                    return true;
+                }
+                board.UpdateBoardOnPieceMove(piece.occupiedSquare, coords, piece, pieceOnCoords);
+            }
+        }
+        return false;
     }
 }

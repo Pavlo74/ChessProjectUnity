@@ -1,14 +1,24 @@
 ﻿using System;
+using UnityEngine;
+using UnityEngine.UI;
 
-internal class ChessUIManager
+public class ChessUIManager : MonoBehaviour
 {
-    internal void OnGameStarted()
+    [SerializeField] private GameObject UIParent;
+   // [SerializeField] private Button restartButton;
+    [SerializeField] private Text resultText;
+
+    public void HideUI()
     {
-        throw new NotImplementedException();
+        UIParent.SetActive(false);
+
     }
 
-    internal void OnGameFinished(string v)
+    public void OnGameFinished(string winner) 
     {
-        throw new NotImplementedException();
+         UIParent.SetActive(true);
+        resultText.text = string.Format("{0} won",winner);
     }
+    
+
 }
